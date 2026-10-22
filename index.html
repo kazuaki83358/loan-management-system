@@ -29,9 +29,9 @@
             </nav>
             <div class="sidebar-footer">
                 <div class="user-profile">
-                    <div class="avatar">JD</div>
+                    <div class="avatar">NK</div>
                     <div class="user-info">
-                        <span class="user-name">John Doe</span>
+                        <span class="user-name">Nishant Kumar</span>
                         <span class="user-role">Administrator</span>
                     </div>
                 </div>
@@ -121,7 +121,7 @@
                 <div class="view-header"><h2>All Applications</h2><p>Search, filter, and inspect live application records.</p></div>
                 <section class="table-section"><div class="table-header"><h2>Applications</h2><div class="table-controls"><div class="search-box"><input id="appSearch" type="search" placeholder="Search customer or ID..."></div><select id="appStatus"><option value="all">All statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Disbursed</option></select></div></div><div class="table-wrapper"><table><thead><tr><th>Customer</th><th>Requested Amount</th><th>Application Date</th><th>Status</th><th>Action</th></tr></thead><tbody id="allApplicationsBody"></tbody></table></div></section>
             </section>
-            <section id="customersView" class="view hidden"><div class="view-header"><h2>Customers</h2><p>Customer data associated with applications in PostgreSQL.</p></div><section class="table-section"><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Applications</th></tr></thead><tbody id="customersBody"></tbody></table></div></section></section>
+            <section id="customersView" class="view hidden"><div class="view-header"><h2>Customers</h2><p>Customer data associated with applications in PostgreSQL.</p></div><section class="table-section"><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>PAN</th><th>Credit Score</th><th>Address</th><th>Applications</th></tr></thead><tbody id="customersBody"></tbody></table></div></section></section>
             <section id="branchesView" class="view hidden"><div class="view-header"><h2>Branches</h2><p>Available branches loaded from the database.</p></div><section class="table-section"><div class="table-wrapper"><table><thead><tr><th>Branch</th><th>City</th><th>Branch ID</th></tr></thead><tbody id="branchesBody"></tbody></table></div></section></section>
             <section id="settingsView" class="view hidden"><div class="view-header"><h2>Settings</h2><p>Preferences are stored in this browser.</p></div><section class="settings-card"><label class="setting-row" for="themeToggle"><span><strong>Dark theme</strong><small>Use a low-light appearance for this dashboard.</small></span><input id="themeToggle" type="checkbox"></label></section></section>
         </main>
@@ -165,6 +165,16 @@
                                 <label for="customerDOB">Date of Birth *</label>
                                 <input type="date" id="customerDOB" name="customerDOB" required>
                                 <span class="error-msg" id="dobError">Date of birth is required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="panNumber">PAN (Optional)</label>
+                                <input type="text" id="panNumber" name="panNumber" maxlength="10" placeholder="e.g. ABCDE1234F" style="text-transform: uppercase;">
+                                <span class="error-msg" id="panError">Valid PAN is 5 letters, 4 digits, 1 letter</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="creditScore">Credit Score (Optional)</label>
+                                <input type="number" id="creditScore" name="creditScore" min="300" max="900" placeholder="300 - 900">
+                                <span class="error-msg" id="creditScoreError">Score must be between 300 and 900</span>
                             </div>
                             <div class="form-group full-width">
                                 <label for="residentialAddress">Residential Address *</label>
@@ -272,6 +282,8 @@
                                 <div class="review-row"><span>Email:</span> <strong id="revEmail"></strong></div>
                                 <div class="review-row"><span>Phone:</span> <strong id="revPhone"></strong></div>
                                 <div class="review-row"><span>DOB:</span> <strong id="revDOB"></strong></div>
+                                <div class="review-row"><span>PAN:</span> <strong id="revPAN"></strong></div>
+                                <div class="review-row"><span>Credit Score:</span> <strong id="revCreditScore"></strong></div>
                                 <div class="review-row"><span>Address:</span> <strong id="revAddress"></strong></div>
                             </div>
                             <div class="review-section review-employment">

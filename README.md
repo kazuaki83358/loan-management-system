@@ -1,37 +1,84 @@
-# AIWIZE Labs Loan Management System - Frontend
+# AIWIZE Labs Loan Management System
 
-Welcome to the frontend prototype of the Loan Management System. This phase focuses on the User Interface (UI) and User Experience (UX) using standard web technologies.
+A professional loan management platform designed to handle the complete lending lifecycle—from customer onboarding and loan application to disbursement and repayment tracking.
 
-## 🚀 How to Run the Project
+This project serves as a comprehensive demonstration of full-stack development integrating a vanilla JS frontend with a robust PostgreSQL backend.
 
-Since this project uses vanilla HTML, CSS, and JavaScript, you do not need a complex build process.
+## 🚀 Key Features
 
-### Option 1: Direct Open (Simplest)
-1. Navigate to the project folder: `C:\Users\pc\Desktop\Important\My Project\loan-management-system`
-2. Double-click `index.html` to open it in your default web browser.
+- **Complete Loan Lifecycle**: Manage applications (`Pending` → `Approved` → `Disbursed`), track active loans, and handle `Closed` or `Defaulted` states.
+- **Professional Dashboard**: Real-time KPI tracking (Total Applications, Pending Review, Active Loans, Total Disbursed).
+- **Multi-Step Application Process**: A validated 4-step form (Personal → Employment → Loan Details → Review) with Indian KYC (PAN) and Credit Score integration.
+- **Financial Integrity**: Precise EMI amortization schedules with principal and interest component tracking.
+- **Advanced SQL Implementation**: Implements window functions for running balances, CTEs for portfolio analysis, and complex joins for customer-loan mapping.
 
-### Option 2: Using a Local Server (Recommended)
-If you have VS Code installed, use the **Live Server** extension:
-1. Right-click `index.html`.
-2. Select **"Open with Live Server"**.
-3. The project will run at `http://127.0.0.1:5500`.
+## 🛠️ Technologies Used
 
-## 🛠️ Technical Overview
+- **Frontend**: HTML5, CSS3 (Inter Font), Vanilla JavaScript.
+- **Backend**: Node.js, Express.js.
+- **Database**: PostgreSQL.
+- **API**: RESTful JSON API.
 
-### Architecture
-- **HTML5**: Semantic structure for accessibility and SEO.
-- **CSS3**: Custom properties (variables) for theming and CSS Grid/Flexbox for a responsive layout.
-- **Vanilla JavaScript**: State-driven rendering logic to manage the table and KPI cards.
+## 📋 Prerequisites & Installation
 
-### Key Features
-- **Responsive Dashboard**: Adapts from desktop to mobile.
-- **Real-time Filtering**: Filter applications by status or search for customers instantly.
-- **Form Validation**: Client-side validation to ensure data integrity before submission.
-- **KPI Tracking**: Automatic calculation of totals based on the current data set.
+### Prerequisites
+- Node.js (Latest LTS)
+- PostgreSQL (Installed and running)
 
-## ⚠️ Current Limitations
-- **Static Data**: The application uses a local JavaScript array (`DEMO_APPLICATIONS`) instead of a live database.
-- **Persistence**: New applications added via the form will disappear if you refresh the page.
-- **No Backend**: No actual emails are sent or database records created.
+### Setup Instructions
+1. **Clone the repository**
+2. **Install dependencies**:
+   ```powershell
+   npm install
+   ```
+3. **Database Configuration**:
+   Create a `.env` file in the root directory:
+   ```env
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=loan_management
+   DB_USER=your_username
+   DB_PASSWORD=your_password
+   ```
+4. **Database Schema**:
+   Run the migrations in order from the `database/migrations/` directory.
 
-*The next phase will implement a Node.js/Express backend to connect this frontend to the PostgreSQL database.*
+## 🏃 Running the Application
+
+```powershell
+npm start
+```
+The application will be available at `http://localhost:3000`.
+
+## 🔌 API Endpoints
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/health` | GET | Verifies server and database connectivity. |
+| `/api/dashboard` | GET | Returns aggregate KPIs for the dashboard. |
+| `/api/applications` | GET | Retrieves all loan applications with customer and branch details. |
+| `/api/applications/:id` | GET | Fetches full details for a specific application. |
+| `/api/customers` | GET | Lists all customers and their total application counts. |
+| `/api/branches` | GET | Returns list of available bank branches. |
+| `/api/applications` | POST | Submits a new loan application (creates customer & employment records). |
+
+## 📊 SQL Practice Capabilities
+
+The database is seeded to support the following advanced SQL exercises:
+- **Window Functions**: Computing running principal balances and outstanding debt.
+- **Deduplication**: Identifying duplicate applicants using PAN and phone numbers.
+- **Aggregation**: Calculating NPA (Non-Performing Asset) rates and portfolio quality.
+- **Complex Joins**: Mapping customers to multiple applications and their corresponding branches.
+
+## 📂 Project Structure
+- `server.js`: Express backend and API logic.
+- `db.js`: PostgreSQL connection pool management.
+- `index.html`: Main dashboard and application UI.
+- `js/app.js`: Frontend logic, API integration, and form validation.
+- `css/style.css`: Professional dashboard styling.
+- `database/migrations/`: Versioned SQL schema and seed scripts.
+
+## 🖼️ Application Screenshots
+
+### Loan Application Form
+![Loan Application](screenshots/loanapplication.png)

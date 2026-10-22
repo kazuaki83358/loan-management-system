@@ -1,5 +1,12 @@
 node_modules
 package-lock.json
 .env
+.env.*
+!.env.example
 .DS_Store
 npm-debug.log
+*.log
+*.dump
+pre_p*_backup.sql
+*.bak
+screenshots/application_detail.png
