@@ -1,0 +1,276 @@
+// API Configuration
+const API_BASE_URL = 'http://localhost:3000/api';
+
+// Application State
+let state = {
+    applications: [],
+    filters: {
+        search: '',
+        status: 'all'
+    },
+    currentStep: 1,
+    formData: {}
+};
+
+// 2. DOM Elements
+const elements = {
+    appBody: document.getElementById('applicationsBody'),
+    searchInput: document.getElementById('searchInput'),
+    statusFilter: document.getElementById('statusFilter'),
+    totalApps: document.getElementById('totalApps'),
+    pendingApps: document.getElementById('pendingApps'),
+    activeLoans: document.getElementById('activeLoans'),
+    totalDisbursed: document.getElementById('totalDisbursed'),
+    loadingState: document.getElementById('loadingState'),
+    emptyState: document.getElementById('emptyState'),
+
+    // Modal Elements
+    openFormBtn: document.getElementById('openFormBtn'),
+    closeFormBtn: document.getElementById('closeFormBtn'),
+    cancelFormBtn: document.getElementById('cancelFormBtn'),
+    formModal: document.getElementById('formModal'),
+    loanForm: document.getElementById('loanForm'),
+
+    // Stepper Elements
+    steps: document.querySelectorAll('.form-step'),
+    indicators: document.querySelectorAll('.step-indicator'),
+    nextBtns: document.querySelectorAll('.next-step'),
+    prevBtns: document.querySelectorAll('.prev-step'),
+};
+
+// 3. Core Functions
+
+async function updateKPIs() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/dashboard`);
+        if (!response.ok) throw new Error('Failed to fetch dashboard data');
+        const data = await response.json();
+
+        elements.totalApps.textContent = data.totalApplications;
+        elements.pendingApps.textContent = data.pendingApplications;
+        elements.activeLoans.textContent = data.activeLoans;
+        elements.totalDisbursed.textContent = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(data.totalDisbursed);
+    } catch (err) {
+        console.error('KPI Update Error:', err);
+    }
+}
+
+async function fetchAndRenderApplications() {
+    const { search, status } = state.filters;
+    elements.appBody.innerHTML = '';
+    elements.loadingState.classList.remove('hidden');
+    elements.emptyState.classList.add('hidden');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/applications`);
+        if (!response.ok) throw new Error('Failed to fetch applications');
+        const apps = await response.json();
+        state.applications = apps;
+
+        const filtered = apps.filter(app => {
+            const matchesSearch = app.customer.toLowerCase().includes(search.toLowerCase()) ||
+                                 app.id.toString().toLowerCase().includes(search.toLowerCase());
+            const matchesStatus = status === 'all' || app.status === status;
+            return matchesSearch && matchesStatus;
+        });
+
+        elements.loadingState.classList.add('hidden');
+
+        if (filtered.length === 0) {
+            elements.emptyState.classList.remove('hidden');
+            return;
+        }
+
+        filtered.forEach(app => {
+            const row = document.createElement('tr');
+            const statusClass = `badge-${app.status.toLowerCase()}`;
+            row.innerHTML = `
+                <td style="font-weight: 500;">${app.customer}<br><small style="color: var(--text-muted)">ID: ${app.id}</small></td>
+                <td>${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(app.amount)}</td>
+                <td>${new Date(app.date).toLocaleDateString()}</td>
+                <td><span class="badge ${statusClass}">${app.status}</span></td>
+                <td><button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.7rem;">View</button></td>
+            `;
+            elements.appBody.appendChild(row);
+        });
+    } catch (err) {
+        elements.loadingState.classList.add('hidden');
+        elements.emptyState.classList.remove('hidden');
+        console.error('Render Table Error:', err);
+    }
+}
+
+// --- Form Logic ---
+
+function validateStep(step) {
+    let isValid = true;
+    const currentStepEl = document.getElementById(`step${step}`);
+    const inputs = currentStepEl.querySelectorAll('input[required], select[required], textarea[required]');
+
+    inputs.forEach(input => {
+        let fieldValid = true;
+        if (!input.value.trim()) {
+            fieldValid = false;
+        } else if (input.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value)) {
+            fieldValid = false;
+        } else if (input.type === 'number' && parseFloat(input.value) < 0) {
+            fieldValid = false;
+        }
+
+        const errorSpan = input.parentElement.querySelector('.error-msg');
+        if (!fieldValid) {
+            input.parentElement.classList.add('invalid');
+            if (errorSpan) errorSpan.style.display = 'block';
+            isValid = false;
+        } else {
+            input.parentElement.classList.remove('invalid');
+            if (errorSpan) errorSpan.style.display = 'none';
+        }
+    });
+
+    return isValid;
+}
+
+function updateStepUI() {
+    elements.steps.forEach((step, idx) => {
+        step.classList.toggle('active', idx + 1 === state.currentStep);
+        step.classList.toggle('hidden', idx + 1 !== state.currentStep);
+    });
+
+    elements.indicators.forEach((ind, idx) => {
+        ind.classList.toggle('active', idx + 1 <= state.currentStep);
+    });
+}
+
+function populateReview() {
+    const formData = new FormData(elements.loanForm);
+    const data = Object.fromEntries(formData.entries());
+
+    document.getElementById('revName').textContent = data.customerName || 'N/A';
+    document.getElementById('revEmail').textContent = data.customerEmail || 'N/A';
+    document.getElementById('revPhone').textContent = data.customerPhone || 'N/A';
+    document.getElementById('revDOB').textContent = data.customerDOB || 'N/A';
+    document.getElementById('revAddress').textContent = data.residentialAddress || 'N/A';
+
+    document.getElementById('revEmployment').textContent = data.employmentType || 'N/A';
+    document.getElementById('revEmployer').textContent = data.employerName || 'N/A';
+    document.getElementById('revIncome').textContent = data.monthlyIncome ? `₹${data.monthlyIncome}` : 'N/A';
+    document.getElementById('revExperience').textContent = data.yearsExperience ? `${data.yearsExperience} yrs` : 'N/A';
+    document.getElementById('revEMI').textContent = data.existingEMI ? `₹${data.existingEMI}` : 'N/A';
+
+    document.getElementById('revType').textContent = data.loanType || 'N/A';
+    document.getElementById('revAmount').textContent = data.loanAmount ? `₹${data.loanAmount}` : 'N/A';
+    document.getElementById('revTenure').textContent = data.loanTenure ? `${data.loanTenure} months` : 'N/A';
+    document.getElementById('revPurpose').textContent = data.loanPurpose || 'N/A';
+    document.getElementById('revBranch').textContent = data.branchSelection || 'N/A';
+}
+
+async function handleFormSubmit(e) {
+    e.preventDefault();
+
+    // Final validation
+    if (!validateStep(4)) return;
+
+    const formData = new FormData(elements.loanForm);
+    const payload = {
+        customerName: formData.get('customerName'),
+        customerEmail: formData.get('customerEmail'),
+        loanAmount: parseInt(formData.get('loanAmount')),
+        loanTerm: formData.get('loanTenure'),
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/applications`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error || 'Application submission failed');
+        }
+
+        const result = await response.json();
+        alert(`Success! Application ${result.applicationId} has been submitted.`);
+
+        elements.loanForm.reset();
+        toggleModal(false);
+        await updateKPIs();
+        await fetchAndRenderApplications();
+    } catch (err) {
+        alert(`Error: ${err.message}`);
+    }
+}
+
+function toggleModal(show) {
+    if (show) {
+        elements.formModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    } else {
+        elements.formModal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        document.querySelectorAll('.form-group').forEach(el => el.classList.remove('invalid'));
+    }
+}
+
+async function loadBranches() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/branches`);
+        if (!response.ok) throw new Error('Failed to fetch branches');
+        const branches = await response.json();
+        const select = document.getElementById('branchSelection');
+        select.innerHTML = '<option value="">Select branch</option>';
+        branches.forEach(b => {
+            select.innerHTML += `<option value="${b.branch_id}">${b.branch_name} (${b.city})</option>`;
+        });
+    } catch (err) {
+        console.error('Branch Load Error:', err);
+    }
+}
+
+function init() {
+    elements.openFormBtn.addEventListener('click', () => toggleModal(true));
+    elements.closeFormBtn.addEventListener('click', () => toggleModal(false));
+    elements.cancelFormBtn.addEventListener('click', () => toggleModal(false));
+
+    elements.nextBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (validateStep(state.currentStep)) {
+                state.currentStep++;
+                if (state.currentStep === 4) populateReview();
+                updateStepUI();
+            }
+        });
+    });
+
+    elements.prevBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.currentStep--;
+            updateStepUI();
+        });
+    });
+
+    elements.searchInput.addEventListener('input', (e) => {
+        state.filters.search = e.target.value;
+        fetchAndRenderApplications();
+    });
+
+    elements.statusFilter.addEventListener('change', (e) => {
+        state.filters.search = ''; // Reset search for clean filtering
+        state.filters.status = e.target.value;
+        fetchAndRenderApplications();
+    });
+
+    elements.loanForm.addEventListener('submit', handleFormSubmit);
+
+    updateKPIs();
+    fetchAndRenderApplications();
+    loadBranches();
+}
+
+document.addEventListener('DOMContentLoaded', init);

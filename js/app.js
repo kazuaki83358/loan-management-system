@@ -1,204 +1,26 @@
-/**
- * AIWIZE Labs Loan Management System - Frontend Logic
- * This version uses static demo data reflecting the PostgreSQL schema.
- */
-
-// 1. Demo Data (Simulating DB Records)
-const DEMO_APPLICATIONS = [
-    { id: 'APP-1001', customer: 'Alice Johnson', amount: 5000, date: '2026-10-15', status: 'Approved', email: 'alice@example.com' },
-    { id: 'APP-1002', customer: 'Bob Smith', amount: 12000, date: '2026-10-18', status: 'Pending', email: 'bob@example.com' },
-    { id: 'APP-1003', customer: 'Charlie Brown', amount: 2500, date: '2026-10-20', status: 'Rejected', email: 'charlie@example.com' },
-    { id: 'APP-1004', customer: 'Diana Prince', amount: 45000, date: '2026-10-21', status: 'Approved', email: 'diana@example.com' },
-    { id: 'APP-1005', customer: 'Ethan Hunt', amount: 8000, date: '2026-10-22', status: 'Pending', email: 'ethan@example.com' },
-    { id: 'APP-1006', customer: 'Fiona Glenanne', amount: 15000, date: '2026-10-10', status: 'Approved', email: 'fiona@example.com' },
-];
-
-// Application State
-let state = {
-    applications: [...DEMO_APPLICATIONS],
-    filters: {
-        search: '',
-        status: 'all'
-    }
-};
-
-// 2. DOM Elements
-const elements = {
-    appBody: document.getElementById('applicationsBody'),
-    searchInput: document.getElementById('searchInput'),
-    statusFilter: document.getElementById('statusFilter'),
-    totalApps: document.getElementById('totalApps'),
-    pendingApps: document.getElementById('pendingApps'),
-    activeLoans: document.getElementById('activeLoans'),
-    totalDisbursed: document.getElementById('totalDisbursed'),
-    loadingState: document.getElementById('loadingState'),
-    emptyState: document.getElementById('emptyState'),
-
-    // Modal Elements
-    openFormBtn: document.getElementById('openFormBtn'),
-    closeFormBtn: document.getElementById('closeFormBtn'),
-    cancelFormBtn: document.getElementById('cancelFormBtn'),
-    formModal: document.getElementById('formModal'),
-    loanForm: document.getElementById('loanForm'),
-};
-
-// 3. Core Functions
-
-/**
- * Updates the KPI cards based on current application data
- */
-function updateKPIs() {
-    const total = state.applications.length;
-    const pending = state.applications.filter(a => a.status === 'Pending').length;
-    const active = state.applications.filter(a => a.status === 'Approved').length;
-    const disbursed = state.applications
-        .filter(a => a.status === 'Approved')
-        .reduce((sum, a) => sum + a.amount, 0);
-
-    elements.totalApps.textContent = total;
-    elements.pendingApps.textContent = pending;
-    elements.activeLoans.textContent = active;
-    elements.totalDisbursed.textContent = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        maximumFractionDigits: 0
-    }).format(disbursed);
-}
-
-/**
- * Renders the application table with filtering logic
- */
-function renderTable() {
-    const { search, status } = state.filters;
-
-    // Show loading state briefly to simulate real API
-    elements.appBody.innerHTML = '';
-    elements.loadingState.classList.remove('hidden');
-    elements.emptyState.classList.add('hidden');
-
-    setTimeout(() => {
-        elements.loadingState.classList.add('hidden');
-
-        const filtered = state.applications.filter(app => {
-            const matchesSearch = app.customer.toLowerCase().includes(search.toLowerCase()) ||
-                                 app.id.toLowerCase().includes(search.toLowerCase());
-            const matchesStatus = status === 'all' || app.status === status;
-            return matchesSearch && matchesStatus;
-        });
-
-        if (filtered.length === 0) {
-            elements.emptyState.classList.remove('hidden');
-            return;
-        }
-
-        filtered.forEach(app => {
-            const row = document.createElement('tr');
-            const statusClass = `badge-${app.status.toLowerCase()}`;
-
-            row.innerHTML = `
-                <td style="font-weight: 500;">${app.customer}<br><small style="color: var(--text-muted)">${app.id}</small></td>
-                <td>${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(app.amount)}</td>
-                <td>${app.date}</td>
-                <td><span class="badge ${statusClass}">${app.status}</span></td>
-                <td><button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.7rem;">View</button></td>
-            `;
-            elements.appBody.appendChild(row);
-        });
-    }, 300);
-}
-
-// 4. Form Validation & Handling
-
-function validateForm() {
-    let isValid = true;
-    const fields = [
-        { id: 'customerName', errorId: 'nameError', validation: val => val.trim().length > 0 },
-        { id: 'customerEmail', errorId: 'emailError', validation: val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) },
-        { id: 'loanAmount', errorId: 'amountError', validation: val => parseInt(val) >= 100 },
-        { id: 'loanTerm', errorId: 'termError', validation: val => val !== '' },
-    ];
-
-    fields.forEach(field => {
-        const input = document.getElementById(field.id);
-        const error = document.getElementById(field.errorId);
-        if (!field.validation(input.value)) {
-            input.parentElement.classList.add('invalid');
-            isValid = false;
-        } else {
-            input.parentElement.classList.remove('invalid');
-        }
-    });
-
-    return isValid;
-}
-
-function handleFormSubmit(e) {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    const formData = new FormData(elements.loanForm);
-    const newApp = {
-        id: `APP-${Math.floor(1000 + Math.random() * 9000)}`,
-        customer: formData.get('customerName'),
-        email: formData.get('customerEmail'),
-        amount: parseInt(formData.get('loanAmount')),
-        date: new Date().toISOString().split('T')[0],
-        status: 'Pending'
-    };
-
-    // Add to state
-    state.applications.unshift(newApp);
-
-    // UI Feedback
-    alert(`Success! Application ${newApp.id} has been submitted for ${newApp.customer}.`);
-
-    // Reset and Close
-    elements.loanForm.reset();
-    toggleModal(false);
-
-    // Refresh View
-    updateKPIs();
-    renderTable();
-}
-
-// 5. Event Listeners & UI Helpers
-
-function toggleModal(show) {
-    if (show) {
-        elements.formModal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // Prevent scrolling
-    } else {
-        elements.formModal.classList.add('hidden');
-        document.body.style.overflow = 'auto';
-        // Clear validation errors on close
-        document.querySelectorAll('.form-group').forEach(el => el.classList.remove('invalid'));
-    }
-}
-
-function init() {
-    // Event: Open/Close Modal
-    elements.openFormBtn.addEventListener('click', () => toggleModal(true));
-    elements.closeFormBtn.addEventListener('click', () => toggleModal(false));
-    elements.cancelFormBtn.addEventListener('click', () => toggleModal(false));
-
-    // Event: Filter/Search
-    elements.searchInput.addEventListener('input', (e) => {
-        state.filters.search = e.target.value;
-        renderTable();
-    });
-
-    elements.statusFilter.addEventListener('change', (e) => {
-        state.filters.status = e.target.value;
-        renderTable();
-    });
-
-    // Event: Form Submit
-    elements.loanForm.addEventListener('submit', handleFormSubmit);
-
-    // Initial Load
-    updateKPIs();
-    renderTable();
-}
-
-// Launch application
-document.addEventListener('DOMContentLoaded', init);
+// The UI can be opened through Express, Live Server, or from disk. The API
+// always lives on the Express server so those entry points share one contract.
+const API_BASE_URL = window.location.protocol.startsWith('http') && window.location.port === '3000' ? '/api' : 'http://localhost:3000/api';
+const state = { applications: [], branches: [], currentStep: 1 };
+const $ = id => document.getElementById(id);
+const money = value => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+async function api(path, options) { const response = await fetch(`${API_BASE_URL}${path}`, options); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`); return data; }
+function showError(error) { console.error(error); alert(`Error: ${error.message}`); }
+function renderRows(target, applications) { target.innerHTML = applications.map(application => `<tr><td><strong>${escapeHtml(application.customer)}</strong><br><small>ID: ${application.id}</small></td><td>${money(application.amount)}</td><td>${new Date(application.date).toLocaleDateString()}</td><td><span class="badge badge-${String(application.status).toLowerCase()}">${escapeHtml(application.status)}</span></td><td><button type="button" class="btn btn-secondary view-app" data-id="${application.id}">View</button></td></tr>`).join('') || '<tr><td colspan="5" class="state-message">No applications found.</td></tr>'; }
+async function refreshDashboard() { const data = await api('/dashboard'); $('totalApps').textContent = data.totalApplications; $('pendingApps').textContent = data.pendingApplications; $('activeLoans').textContent = data.activeLoans; $('totalDisbursed').textContent = money(data.totalDisbursed); }
+async function refreshApplications() { state.applications = await api('/applications'); renderDashboardRows(); renderApplications(); }
+function matchesApplication(application, search, status) { return (application.customer.toLowerCase().includes(search.toLowerCase()) || String(application.id).includes(search)) && (status === 'all' || application.status === status); }
+function renderDashboardRows() { renderRows($('applicationsBody'), state.applications.filter(application => matchesApplication(application, $('searchInput').value, $('statusFilter').value)).slice(0, 5)); }
+function renderApplications() { renderRows($('allApplicationsBody'), state.applications.filter(application => matchesApplication(application, $('appSearch').value, $('appStatus').value))); }
+function renderBranches() { $('branchesBody').innerHTML = state.branches.map(branch => `<tr><td>${escapeHtml(branch.branch_name)}</td><td>${escapeHtml(branch.city)}</td><td>Branch #${branch.branch_id}</td></tr>`).join('') || '<tr><td colspan="3">No branches found.</td></tr>'; }
+function renderCustomers(customers) { $('customersBody').innerHTML = customers.map(customer => `<tr><td>${escapeHtml(customer.name)}</td><td>${escapeHtml(customer.email || '-')}</td><td>${escapeHtml(customer.phone || '-')}</td><td>${escapeHtml(customer.address || '-')}</td><td>${customer.application_count}</td></tr>`).join('') || '<tr><td colspan="5">No customers found.</td></tr>'; }
+function setView(view) { document.querySelectorAll('.view').forEach(element => element.classList.toggle('hidden', element.id !== `${view}View`)); document.querySelectorAll('.sidebar-nav a').forEach(link => link.parentElement.classList.toggle('active', link.dataset.view === view)); if (view === 'customers') api('/customers').then(renderCustomers).catch(showError); if (view === 'branches') renderBranches(); }
+function openDetail(id) { const application = state.applications.find(item => item.id === Number(id)); if (!application) return; $('detailContent').innerHTML = `<dl><dt>Application</dt><dd>#${application.id}</dd><dt>Customer</dt><dd>${escapeHtml(application.customer)}</dd><dt>Email</dt><dd>${escapeHtml(application.email || '-')}</dd><dt>Phone</dt><dd>${escapeHtml(application.phone || '-')}</dd><dt>Amount</dt><dd>${money(application.amount)}</dd><dt>Term</dt><dd>${application.tenure || '-'} months</dd><dt>Type</dt><dd>${escapeHtml(application.type || '-')}</dd><dt>Purpose</dt><dd>${escapeHtml(application.purpose || '-')}</dd><dt>Branch</dt><dd>${escapeHtml(application.branch || '-')} (${escapeHtml(application.city || '')})</dd><dt>Status</dt><dd>${escapeHtml(application.status)}</dd></dl>`; $('detailModal').classList.remove('hidden'); }
+function validateStep(step) { let valid = true; document.querySelectorAll(`#step${step} [required]`).forEach(input => { const invalid = !input.value.trim() || (input.type === 'number' && Number(input.value) < Number(input.min || 0)); input.parentElement.classList.toggle('invalid', invalid); valid &&= !invalid; }); return valid; }
+function updateStepper() { document.querySelectorAll('.form-step').forEach((step, index) => step.classList.toggle('hidden', index + 1 !== state.currentStep)); document.querySelectorAll('.step-indicator').forEach((indicator, index) => indicator.classList.toggle('active', index + 1 <= state.currentStep)); }
+function populateReview() { const data = Object.fromEntries(new FormData($('loanForm'))); const mapping = { Name: 'customerName', Email: 'customerEmail', Phone: 'customerPhone', DOB: 'customerDOB', Address: 'residentialAddress', Employment: 'employmentType', Employer: 'employerName', Income: 'monthlyIncome', Experience: 'yearsExperience', EMI: 'existingEMI', Type: 'loanType', Amount: 'loanAmount', Tenure: 'loanTenure', Purpose: 'loanPurpose', Branch: 'branchSelection' }; Object.entries(mapping).forEach(([label, key]) => { $(`rev${label}`).textContent = data[key] || '-'; }); const branch = state.branches.find(item => item.branch_id === Number(data.branchSelection)); if (branch) $('revBranch').textContent = `${branch.branch_name} (${branch.city})`; }
+async function submitForm(event) { event.preventDefault(); if (!validateStep(4)) return; const raw = Object.fromEntries(new FormData($('loanForm'))); const payload = { customerName: raw.customerName, customerEmail: raw.customerEmail, customerPhone: raw.customerPhone, customerDOB: raw.customerDOB, residentialAddress: raw.residentialAddress, employmentType: raw.employmentType, employerName: raw.employerName, monthlyIncome: Number(raw.monthlyIncome), yearsExperience: Number(raw.yearsExperience), existingEMI: Number(raw.existingEMI), loanType: raw.loanType, loanAmount: Number(raw.loanAmount), loanTenure: Number(raw.loanTenure), loanPurpose: raw.loanPurpose, branchSelection: Number(raw.branchSelection) }; const result = await api('/applications', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); alert(`Success! Application ${result.applicationId} has been submitted.`); $('loanForm').reset(); $('formModal').classList.add('hidden'); state.currentStep = 1; updateStepper(); await Promise.all([refreshDashboard(), refreshApplications()]); }
+function applyTheme() { const dark = localStorage.getItem('aiwize-theme') === 'dark'; document.body.classList.toggle('dark-theme', dark); $('themeToggle').checked = dark; }
+async function init() { const views = ['dashboard', 'applications', 'customers', 'branches', 'settings']; document.querySelectorAll('.sidebar-nav a').forEach((link, index) => { link.dataset.view = views[index]; link.onclick = event => { event.preventDefault(); setView(link.dataset.view); }; }); state.branches = await api('/branches'); $('branchSelection').innerHTML = '<option value="">Select branch</option>' + state.branches.map(branch => `<option value="${branch.branch_id}">${escapeHtml(branch.branch_name)} (${escapeHtml(branch.city)})</option>`).join(''); renderBranches(); await Promise.all([refreshDashboard(), refreshApplications()]); applyTheme(); $('openFormBtn').onclick = () => $('formModal').classList.remove('hidden'); $('closeFormBtn').onclick = () => $('formModal').classList.add('hidden'); $('closeDetailBtn').onclick = () => $('detailModal').classList.add('hidden'); document.querySelectorAll('.next-step').forEach(button => button.onclick = () => { if (validateStep(state.currentStep)) { state.currentStep++; if (state.currentStep === 4) populateReview(); updateStepper(); } }); document.querySelectorAll('.prev-step').forEach(button => button.onclick = () => { state.currentStep--; updateStepper(); }); $('loanForm').addEventListener('submit', event => submitForm(event).catch(showError)); $('appSearch').oninput = renderApplications; $('appStatus').onchange = renderApplications; $('searchInput').oninput = renderDashboardRows; $('statusFilter').onchange = renderDashboardRows; document.addEventListener('click', event => { if (event.target.matches('.view-app')) openDetail(event.target.dataset.id); }); $('themeToggle').onchange = event => { localStorage.setItem('aiwize-theme', event.target.checked ? 'dark' : 'light'); applyTheme(); }; }
+document.addEventListener('DOMContentLoaded', () => init().catch(showError));

@@ -22,6 +22,7 @@
     --transition: all 0.3s ease;
     --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --radius: 8px;
+    --border-color: #e2e8f0;
 }
 
 * {
@@ -415,7 +416,7 @@ td {
     color: var(--text-main);
 }
 
-.form-group input, .form-group select {
+.form-group input, .form-group select, .form-group textarea {
     padding: 0.625rem;
     border: 1px solid #e2e8f0;
     border-radius: var(--radius);
@@ -423,9 +424,10 @@ td {
     font-size: 0.9rem;
 }
 
-.form-group input:focus, .form-group select:focus {
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
     outline: none;
     border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .error-msg {
@@ -484,15 +486,235 @@ td {
     .app-container {
         grid-template-columns: 1fr;
     }
-    .sidebar {
-        display: none; /* Simplified for demo - typically would be a hamburger menu */
-    }
     .form-grid {
         grid-template-columns: 1fr;
     }
     .top-header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: start;
         gap: 1rem;
     }
 }
+
+/* Multi-step Form Styles */
+.form-stepper {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+}
+
+.step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    position: relative;
+    flex: 1;
+}
+
+.step-indicator::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: var(--border-color);
+    margin-left: 1rem;
+}
+
+.step-indicator:last-child::after {
+    display: none;
+}
+
+.step-indicator.active {
+    color: var(--primary-color);
+}
+
+.step-indicator span {
+    font-size: 0.85rem;
+}
+
+.step-indicator .step-num {
+    width: 24px;
+    height: 24px;
+    background: var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: white;
+}
+
+.step-indicator.active .step-num {
+    background: var(--primary-color);
+}
+
+.form-step {
+    transition: all 0.3s ease;
+}
+
+.form-step.hidden {
+    display: none;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+/* Review Section */
+.review-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.review-section h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.review-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.review-row span {
+    color: var(--text-muted);
+}
+
+.review-row strong {
+    text-align: right;
+}
+
+/* Compact the final review without changing the other form steps or its data. */
+#formModal .modal-content {
+    width: min(760px, calc(100vw - 32px));
+    max-width: none;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#formModal .modal-header,
+#formModal .form-stepper {
+    flex: 0 0 auto;
+}
+
+#formModal .form-stepper {
+    margin: 1rem 1.25rem 0.75rem;
+    padding: 0;
+}
+
+#formModal #loanForm {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.75rem 1.25rem 1rem;
+    scrollbar-gutter: stable;
+}
+
+#step4 .review-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.875rem 1.25rem;
+    padding: 0;
+}
+
+#step4 .review-section {
+    min-width: 0;
+}
+
+#step4 .review-loan {
+    grid-column: 1 / -1;
+}
+
+#step4 .review-section h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.55rem;
+    padding-bottom: 0.35rem;
+    border-bottom-width: 1px;
+}
+
+#step4 .review-row {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    align-items: start;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.85rem;
+    line-height: 1.35;
+}
+
+#step4 .review-row strong {
+    min-width: 0;
+    text-align: left;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+#step4 .review-actions {
+    position: sticky;
+    bottom: -1rem;
+    z-index: 1;
+    margin-top: 0.75rem;
+    padding: 0.75rem 0 0;
+    background: var(--white);
+    border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 640px) {
+    #formModal .modal-content {
+        width: calc(100vw - 32px);
+        max-height: 85vh;
+    }
+
+    #formModal .modal-header {
+        padding: 1rem;
+    }
+
+    #formModal .form-stepper {
+        margin: 0.75rem 1rem 0.5rem;
+    }
+
+    #formModal #loanForm {
+        padding: 0.75rem 1rem 1rem;
+    }
+
+    #step4 .review-container {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.75rem;
+    }
+
+    #step4 .review-loan {
+        grid-column: auto;
+    }
+
+    #step4 .review-row {
+        grid-template-columns: 82px minmax(0, 1fr);
+    }
+
+    #step4 .review-actions {
+        bottom: -1rem;
+    }
+}
+
+.view-header { margin-bottom: 1.5rem; }
+.view-header h2 { font-size: 1.5rem; }
+.view-header p { color: var(--text-muted); }
+.settings-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; max-width: 620px; }
+.setting-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; cursor: pointer; }
+.setting-row small { display: block; color: var(--text-muted); margin-top: .25rem; }
+.detail-content { padding: 1.5rem; }
+.detail-content dl { display: grid; grid-template-columns: 140px 1fr; gap: .75rem 1rem; }
+.detail-content dt { color: var(--text-muted); font-weight: 600; }
+.detail-content dd { margin: 0; overflow-wrap: anywhere; }
+.dark-theme { --bg-main: #111827; --bg-sidebar: #020617; --text-main: #e2e8f0; --text-muted: #94a3b8; --white: #1e293b; --border-color: #334155; }
+.dark-theme th, .dark-theme .modal-header { background-color: #0f172a; }
+.dark-theme .form-group input, .dark-theme .form-group select, .dark-theme .form-group textarea { background: #0f172a; color: var(--text-main); border-color: #475569; }
+@media (max-width: 768px) { .sidebar { position: static; height: auto; } .sidebar-nav ul { display: flex; overflow-x: auto; } .sidebar-nav li { flex: 0 0 auto; } .sidebar-footer { display: none; } .main-content { padding: 1rem; } .table-controls { width: 100%; flex-wrap: wrap; } .search-box input { width: 100%; } .detail-content dl { grid-template-columns: 1fr; gap: .2rem; } }

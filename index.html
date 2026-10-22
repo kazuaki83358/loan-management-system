@@ -50,6 +50,7 @@
                 </div>
             </header>
 
+            <section id="dashboardView" class="view">
             <!-- Summary KPI Cards -->
             <section class="kpi-container">
                 <div class="kpi-card">
@@ -114,6 +115,15 @@
                     </div>
                 </div>
             </section>
+            </section>
+
+            <section id="applicationsView" class="view hidden">
+                <div class="view-header"><h2>All Applications</h2><p>Search, filter, and inspect live application records.</p></div>
+                <section class="table-section"><div class="table-header"><h2>Applications</h2><div class="table-controls"><div class="search-box"><input id="appSearch" type="search" placeholder="Search customer or ID..."></div><select id="appStatus"><option value="all">All statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Disbursed</option></select></div></div><div class="table-wrapper"><table><thead><tr><th>Customer</th><th>Requested Amount</th><th>Application Date</th><th>Status</th><th>Action</th></tr></thead><tbody id="allApplicationsBody"></tbody></table></div></section>
+            </section>
+            <section id="customersView" class="view hidden"><div class="view-header"><h2>Customers</h2><p>Customer data associated with applications in PostgreSQL.</p></div><section class="table-section"><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Applications</th></tr></thead><tbody id="customersBody"></tbody></table></div></section></section>
+            <section id="branchesView" class="view hidden"><div class="view-header"><h2>Branches</h2><p>Available branches loaded from the database.</p></div><section class="table-section"><div class="table-wrapper"><table><thead><tr><th>Branch</th><th>City</th><th>Branch ID</th></tr></thead><tbody id="branchesBody"></tbody></table></div></section></section>
+            <section id="settingsView" class="view hidden"><div class="view-header"><h2>Settings</h2><p>Preferences are stored in this browser.</p></div><section class="settings-card"><label class="setting-row" for="themeToggle"><span><strong>Dark theme</strong><small>Use a low-light appearance for this dashboard.</small></span><input id="themeToggle" type="checkbox"></label></section></section>
         </main>
 
         <!-- Application Form Modal -->
@@ -123,42 +133,173 @@
                     <h2>New Loan Application</h2>
                     <span class="close-modal" id="closeFormBtn">&times;</span>
                 </div>
+
+                <!-- Multi-step Form Structure -->
+                <div class="form-stepper">
+                    <div class="step-indicator active" data-step="1">1<span> Personal</span></div>
+                    <div class="step-indicator" data-step="2">2<span> Employment</span></div>
+                    <div class="step-indicator" data-step="3">3<span> Loan Details</span></div>
+                    <div class="step-indicator" data-step="4">4<span> Review</span></div>
+                </div>
+
                 <form id="loanForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="customerName">Customer Full Name *</label>
-                            <input type="text" id="customerName" name="customerName" required placeholder="e.g. Alice Johnson">
-                            <span class="error-msg" id="nameError">Name is required</span>
+                    <!-- Step 1: Personal Information -->
+                    <div class="form-step active" id="step1">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="customerName">Full Name *</label>
+                                <input type="text" id="customerName" name="customerName" required placeholder="e.g. Alice Johnson">
+                                <span class="error-msg" id="nameError">Name is required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerEmail">Email Address *</label>
+                                <input type="email" id="customerEmail" name="customerEmail" required placeholder="alice@example.com">
+                                <span class="error-msg" id="emailError">Valid email is required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerPhone">Phone Number *</label>
+                                <input type="tel" id="customerPhone" name="customerPhone" required placeholder="+91 98765 43210">
+                                <span class="error-msg" id="phoneError">Valid phone is required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerDOB">Date of Birth *</label>
+                                <input type="date" id="customerDOB" name="customerDOB" required>
+                                <span class="error-msg" id="dobError">Date of birth is required</span>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="residentialAddress">Residential Address *</label>
+                                <textarea id="residentialAddress" name="residentialAddress" required placeholder="Enter your full home address..."></textarea>
+                                <span class="error-msg" id="addressError">Address is required</span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="customerEmail">Email Address *</label>
-                            <input type="email" id="customerEmail" name="customerEmail" required placeholder="alice@example.com">
-                            <span class="error-msg" id="emailError">Valid email is required</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="loanAmount">Requested Amount ($) *</label>
-                            <input type="number" id="loanAmount" name="loanAmount" required min="100" placeholder="5000">
-                            <span class="error-msg" id="amountError">Amount must be at least $100</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="loanTerm">Loan Term (Months) *</label>
-                            <select id="loanTerm" name="loanTerm" required>
-                                <option value="">Select term</option>
-                                <option value="12">12 Months</option>
-                                <option value="24">24 Months</option>
-                                <option value="36">36 Months</option>
-                                <option value="60">60 Months</option>
-                            </select>
-                            <span class="error-msg" id="termError">Please select a term</span>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary next-step">Next: Employment</button>
                         </div>
                     </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancelFormBtn" class="btn btn-secondary">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit Application</button>
+
+                    <!-- Step 2: Employment & Financials -->
+                    <div class="form-step hidden" id="step2">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="employmentType">Employment Type *</label>
+                                <select id="employmentType" name="employmentType" required>
+                                    <option value="">Select type</option>
+                                    <option value="Salaried">Salaried</option>
+                                    <option value="Self-employed">Self-employed</option>
+                                    <option value="Student">Student</option>
+                                    <option value="Unemployed">Unemployed</option>
+                                </select>
+                                <span class="error-msg" id="employmentError">Please select employment type</span>
+                            </div>
+                            <div class="form-group" id="employerNameGroup">
+                                <label for="employerName">Employer/Business Name *</label>
+                                <input type="text" id="employerName" name="employerName" placeholder="Company Name">
+                                <span class="error-msg" id="employerError">Employer name is required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="monthlyIncome">Monthly Income (₹) *</label>
+                                <input type="number" id="monthlyIncome" name="monthlyIncome" required min="0" placeholder="50000">
+                                <span class="error-msg" id="incomeError">Enter valid monthly income</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="yearsExperience">Years of Experience *</label>
+                                <input type="number" id="yearsExperience" name="yearsExperience" required min="0" placeholder="5">
+                                <span class="error-msg" id="yearsExperienceError">Experience cannot be negative</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="existingEMI">Existing Monthly EMI (₹) *</label>
+                                <input type="number" id="existingEMI" name="existingEMI" required min="0" placeholder="5000">
+                                <span class="error-msg" id="emiError">Enter valid EMI obligations</span>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary prev-step">Back</button>
+                            <button type="button" class="btn btn-primary next-step">Next: Loan Details</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Loan Details -->
+                    <div class="form-step hidden" id="step3">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="loanType">Loan Type *</label>
+                                <select id="loanType" name="loanType" required>
+                                    <option value="">Select loan type</option>
+                                    <option value="Personal">Personal</option>
+                                    <option value="Home">Home</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Vehicle">Vehicle</option>
+                                    <option value="Business">Business</option>
+                                </select>
+                                <span class="error-msg" id="loanTypeError">Please select loan type</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="loanAmount">Requested Amount (₹) *</label>
+                                <input type="number" id="loanAmount" name="loanAmount" required min="100" placeholder="500000">
+                                <span class="error-msg" id="amountError">Amount must be at least ₹100</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="loanTenure">Tenure in Months *</label>
+                                <input type="number" id="loanTenure" name="loanTenure" required min="1" placeholder="36">
+                                <span class="error-msg" id="loanTenureError">Tenure must be at least 1 month</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="loanPurpose">Loan Purpose *</label>
+                                <textarea id="loanPurpose" name="loanPurpose" required placeholder="e.g. Home renovation, Higher studies..."></textarea>
+                                <span class="error-msg" id="purposeError">Purpose is required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="branchSelection">Branch *</label>
+                                <select id="branchSelection" name="branchSelection" required>
+                                    <option value="">Select branch</option>
+                                    <!-- Branches dynamically loaded from API -->
+                                </select>
+                                <span class="error-msg" id="branchError">Please select a branch</span>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary prev-step">Back</button>
+                            <button type="button" class="btn btn-primary next-step">Next: Review</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Review and Submit -->
+                    <div class="form-step hidden" id="step4">
+                        <div class="review-container">
+                            <div class="review-section review-personal">
+                                <h3>Personal Details</h3>
+                                <div class="review-row"><span>Full Name:</span> <strong id="revName"></strong></div>
+                                <div class="review-row"><span>Email:</span> <strong id="revEmail"></strong></div>
+                                <div class="review-row"><span>Phone:</span> <strong id="revPhone"></strong></div>
+                                <div class="review-row"><span>DOB:</span> <strong id="revDOB"></strong></div>
+                                <div class="review-row"><span>Address:</span> <strong id="revAddress"></strong></div>
+                            </div>
+                            <div class="review-section review-employment">
+                                <h3>Employment Details</h3>
+                                <div class="review-row"><span>Employment:</span> <strong id="revEmployment"></strong></div>
+                                <div class="review-row"><span>Employer:</span> <strong id="revEmployer"></strong></div>
+                                <div class="review-row"><span>Income:</span> <strong id="revIncome"></strong></div>
+                                <div class="review-row"><span>Exp:</span> <strong id="revExperience"></strong></div>
+                                <div class="review-row"><span>Existing EMI:</span> <strong id="revEMI"></strong></div>
+                            </div>
+                            <div class="review-section review-loan">
+                                <h3>Loan Details</h3>
+                                <div class="review-row"><span>Type:</span> <strong id="revType"></strong></div>
+                                <div class="review-row"><span>Amount:</span> <strong id="revAmount"></strong></div>
+                                <div class="review-row"><span>Tenure:</span> <strong id="revTenure"></strong></div>
+                                <div class="review-row"><span>Purpose:</span> <strong id="revPurpose"></strong></div>
+                                <div class="review-row"><span>Branch:</span> <strong id="revBranch"></strong></div>
+                            </div>
+                        </div>
+                        <div class="form-actions review-actions">
+                            <button type="button" class="btn btn-secondary prev-step">Back</button>
+                            <button type="submit" class="btn btn-primary">Submit Application</button>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
+        <div id="detailModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-content detail-modal"><div class="modal-header"><h2>Application Details</h2><button id="closeDetailBtn" class="close-modal" type="button" aria-label="Close">&times;</button></div><div id="detailContent" class="detail-content"></div></div></div>
     </div>
 
     <script src="js/app.js"></script>
