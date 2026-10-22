@@ -1,6 +1,6 @@
 # AIWIZE Labs Loan Management System
 
-A professional loan management platform designed to handle the complete lending lifecycle—from customer onboarding and loan application to disbursement and repayment tracking.
+A professional loan management platform designed to handle the complete lending lifecycle—from customer onboarding and loan application to disbursement and repayment tracking. 
 
 This project serves as a comprehensive demonstration of full-stack development integrating a vanilla JS frontend with a robust PostgreSQL backend.
 
@@ -80,5 +80,14 @@ The database is seeded to support the following advanced SQL exercises:
 
 ## 🖼️ Application Screenshots
 
-### Loan Application Form
+### 1. Dashboard Overview
+The main landing page featuring real-time KPIs and the recent applications table.
+![Dashboard](screenshots/dashboard.png)
+
+### 2. Loan Application Form
+The multi-step validation form for new loan requests.
 ![Loan Application](screenshots/loanapplication.png)
+
+### 3. Application Details View
+The detailed inspection view for individual loan applications.
+![Application Details](screenshots/application_detail.png)
