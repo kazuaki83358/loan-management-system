@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIWIZE Labs | Loan Management Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Using Google Fonts for a professional look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">🏦</span>
+                    <span class="logo-text">AIWIZE Labs</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active"><a href="#"><span>📊</span> Dashboard</a></li>
+                    <li><a href="#"><span>📝</span> Applications</a></li>
+                    <li><a href="#"><span>👥</span> Customers</a></li>
+                    <li><a href="#"><span>🏦</span> Branches</a></li>
+                    <li><a href="#"><span>⚙️</span> Settings</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar">JD</div>
+                    <div class="user-info">
+                        <span class="user-name">John Doe</span>
+                        <span class="user-role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <h1>Loan Management Dashboard</h1>
+                    <p class="subtitle">Overview of your loan portfolio and applications</p>
+                </div>
+                <div class="header-right">
+                    <button id="openFormBtn" class="btn btn-primary">+ New Application</button>
+                </div>
+            </header>
+
+            <!-- Summary KPI Cards -->
+            <section class="kpi-container">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Applications</div>
+                    <div class="kpi-value" id="totalApps">0</div>
+                    <div class="kpi-trend positive">↑ 12% from last month</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Pending Review</div>
+                    <div class="kpi-value" id="pendingApps">0</div>
+                    <div class="kpi-trend warning">Requires attention</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Active Loans</div>
+                    <div class="kpi-value" id="activeLoans">0</div>
+                    <div class="kpi-trend positive">↑ 5% growth</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Disbursed</div>
+                    <div class="kpi-value" id="totalDisbursed">$0</div>
+                    <div class="kpi-trend neutral">Stable</div>
+                </div>
+            </section>
+
+            <!-- Table Section -->
+            <section class="table-section">
+                <div class="table-header">
+                    <h2>Recent Applications</h2>
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="searchInput" placeholder="Search customer or ID...">
+                        </div>
+                        <select id="statusFilter">
+                            <option value="all">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="applicationsTable">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Requested Amount</th>
+                                <th>Application Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applicationsBody">
+                            <!-- Data injected by JS -->
+                        </tbody>
+                    </table>
+                    <div id="loadingState" class="state-message hidden">Loading applications...</div>
+                    <div id="emptyState" class="state-message hidden">
+                        <div class="state-icon">📁</div>
+                        <p>No applications found matching your criteria.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Application Form Modal -->
+        <div id="formModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>New Loan Application</h2>
+                    <span class="close-modal" id="closeFormBtn">&times;</span>
+                </div>
+                <form id="loanForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="customerName">Customer Full Name *</label>
+                            <input type="text" id="customerName" name="customerName" required placeholder="e.g. Alice Johnson">
+                            <span class="error-msg" id="nameError">Name is required</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerEmail">Email Address *</label>
+                            <input type="email" id="customerEmail" name="customerEmail" required placeholder="alice@example.com">
+                            <span class="error-msg" id="emailError">Valid email is required</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="loanAmount">Requested Amount ($) *</label>
+                            <input type="number" id="loanAmount" name="loanAmount" required min="100" placeholder="5000">
+                            <span class="error-msg" id="amountError">Amount must be at least $100</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="loanTerm">Loan Term (Months) *</label>
+                            <select id="loanTerm" name="loanTerm" required>
+                                <option value="">Select term</option>
+                                <option value="12">12 Months</option>
+                                <option value="24">24 Months</option>
+                                <option value="36">36 Months</option>
+                                <option value="60">60 Months</option>
+                            </select>
+                            <span class="error-msg" id="termError">Please select a term</span>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancelFormBtn" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
